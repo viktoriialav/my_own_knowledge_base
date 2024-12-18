@@ -41,7 +41,7 @@ ___
 - `git log -- [path/to/file]` - показывает только те коммиты, в которых были изменения файлов, указанных в репозитории.
 - `git log --pretty="- %ad | %h | %s" --no-merges --date=format:"%Y-%m-%d %H:%M:%S" >commites.txt` - сохраняет в файл информацию о коммитах в определенном виде, которые были сделаны в исходном коде за все время и не были коммитами слияния
 
-Дополнительные опции для `git log`:
+#### Дополнительные опции для `git log`:
   - `-p` (или `--patch`) - показывает патч для каждого коммита.
   - `--stat` - показывает статистику изменённых файлов для каждого коммита.
   - `--shortstat`- отображает только строку с количеством изменений/вставок/удалений для команды `--stat`.
@@ -53,7 +53,7 @@ ___
   - `--pretty` - показывает коммиты в альтернативном формате. Возможные варианты опций: `oneline`, `short`, `full`, `fuller` и `format` (с помощью последней можно указать свой формат).
   - `--oneline` - cокращение для одновременного использования опций --pretty=oneline --abbrev-commit.
 
-Опции для ограничения вывода для `git log`:
+#### Опции для ограничения вывода для `git log`:
   - `-(n)` - показывает только последние n коммитов.
   - `--since`, `--after` - показывает только те коммиты, которые были сделаны после указанной даты (`2.weeks`, `2008-01-15`, `2 years 1 day 3 minutes ago`).
   - `--until [date]`, `--before [date]` - показывает только те коммиты, которые были сделаны до указанной даты.
@@ -98,11 +98,66 @@ cбрасывает весь промежуточный индекс, чтобы
 индексы, чтобы они соответствовали указанному коммиту, но оставляет рабочий каталог неизменным.
 
 ___
+### Rebase
 
+- `git rebase -i HEAD~[n]` - для изменения n последних сообщений коммитов или нескольких сообщений из n последних коммитов.
+Каждый коммит, входящий в диапазон HEAD~n..HEAD, будет изменён вне зависимости от того, изменили вы сообщение или нет.
+
+- Простейшее перебазирование ([ссылка на источник](https://git-scm.com/book/ru/v2/%D0%92%D0%B5%D1%82%D0%B2%D0%BB%D0%B5%D0%BD%D0%B8%D0%B5-%D0%B2-Git-%D0%9F%D0%B5%D1%80%D0%B5%D0%B1%D0%B0%D0%B7%D0%B8%D1%80%D0%BE%D0%B2%D0%B0%D0%BD%D0%B8%D0%B5#:~:text=%D0%9F%D1%80%D0%BE%D1%81%D1%82%D0%B5%D0%B9%D1%88%D0%B5%D0%B5%20%D0%BF%D0%B5%D1%80%D0%B5%D0%B1%D0%B0%D0%B7%D0%B8%D1%80%D0%BE%D0%B2%D0%B0%D0%BD%D0%B8%D0%B5)):
+```bash
+git checkout [new_branch]
+git rebase [master/main]
+git checkout [master/main]
+git merge [new_branch]
+```
+*Последние две команды - выполнение слияния перемоткой для ветки `master/main`.
+
+- `git rebase [basebranch] [topicbranch]` - перебазирование ветки `topicbranch` относительно ветки `basebranch` 
+без предварительного переключения на `topicbranch`. Тогда предыдущая последовательность команд сокращается:
+
+```bash
+git rebase [master/main] [new_branch]
+git checkout [master/main]
+git merge [new_branch]
+```
+- Более сложное перебазирование ([ссылка на источник](https://git-scm.com/book/ru/v2/%D0%92%D0%B5%D1%82%D0%B2%D0%BB%D0%B5%D0%BD%D0%B8%D0%B5-%D0%B2-Git-%D0%9F%D0%B5%D1%80%D0%B5%D0%B1%D0%B0%D0%B7%D0%B8%D1%80%D0%BE%D0%B2%D0%B0%D0%BD%D0%B8%D0%B5#:~:text=%D0%91%D0%BE%D0%BB%D0%B5%D0%B5%20%D0%B8%D0%BD%D1%82%D0%B5%D1%80%D0%B5%D1%81%D0%BD%D1%8B%D0%B5%20%D0%BF%D0%B5%D1%80%D0%B5%D0%BC%D0%B5%D1%89%D0%B5%D0%BD%D0%B8%D1%8F)):
+
+`git rebase --onto [master/main] [branch_1] [branch_2]` - применение изменений из ветки `branch_2`, которых нет в `branch_1`, на ветке `master/main`.
+
+```bash
+git rebase [master/main] [new_branch]
+git checkout [master/main]
+git merge [branch_2]
+
+git rebase [master/main] [branch_1]
+git checkout [master/main]
+git merge [branch_1]
+
+git branch -d [branch_2]
+git branch -d [branch_1]
+```
+
+
+#### Важно! Не перемещайте коммиты, уже отправленные в публичный репозиторий.
+
+#### Разница между `rebase` и `merge`: 
+Перебазирование (`rebase`) повторяет изменения из одной ветки поверх другой в том порядке, в котором эти изменения были сделаны, в то время как слияние (`merge`) берёт две конечные точки и сливает их вместе.
+___
+### Отмена коммита
+
+- `git revert [commit]` - создаёт новый коммит, который вносит изменения, противоположные указанному коммиту, 
+по существу отменяя его.
+`git revert -m [parent-number] HEAD` - создаёт новый коммит, который вносит изменения, противоположные тем, что были 
+внесены начиная с `parent-number` родительской строки.
+
+[Документация по revert.](https://git-scm.com/docs/git-revert)
+
+___
 ### Удаление файла
 - `git rm [file_name]` - удаляет файл из рабочего каталога
 - `git rm [file_name] --cached` - оставляет файл на жёстком диске, но перестать отслеживать изменения в нём
-
+- `git filter-branch --tree-filter 'rm -f [file_name]' HEAD` - удаление файла из каждого коммита (`--tree-filter` выполняет указанную команду после переключения на каждый коммит и затем повторно фиксирует результаты)
+- `git filter-branch --tree-filter 'rm -f *~' HEAD` - удаляет все случайно зафиксированные резервные копии файлов, созданные текстовым редактором.
 ___
 ### Перемещение файла = Переименование файла
 - `git mv [file_from] [file_to]` - перемещение файла из директории `file_from` в директорию `file_to`
@@ -132,58 +187,49 @@ ___
 - `git update-git-for-windows` - Windows
 - `git update` - Linux
 
+___
+___
+## Алгоритмы
+___
 
+### Начало работы и связь с удаленным репозиторием
 
+```bash
+git init
+git add .
+git commit -m "[Initial_commit]"
+git remote add [repository_alias] [url]
+git push -u [repository_alias] [branch_name]
+```
 
-[//]: # (___)
+### Добавление файла после коммита, который не был запушен
 
-[//]: # (___)
+- Если сообщение коммита нужно изменить:
+```bash
+git add [file_name]
+git commit --amend -m '[New_commit]'
+```
 
-[//]: # (## Алгоритмы)
+- Если сообщение коммита менять не нужно:
+```bash
+git add [file_name]
+git commit --amend --no-edit
+```
 
-[//]: # (___)
+### Переименование последнего коммита, который уже был запушен
 
-[//]: # (### Начало работы и связь с удаленным репозиторием)
+```bash
+git commit --amend -m '[New message]'
+git push --force [repository_alias] [branch_name]
+```
 
-[//]: # (- `git init`)
+### Удаление последнего коммита, который уже запушен
 
-[//]: # (- `git add .`)
-
-[//]: # (- `git commit -m "[Initial commit]"`)
-
-[//]: # (- `git remote add [repository_alias] [url]`)
-
-[//]: # (- `git push -u [repository_alias] [branch_name]`)
-
-[//]: # ()
-[//]: # ()
-[//]: # (### Добавление файла после коммита, который не был запушен)
-
-[//]: # (- `git commit -m '[Initial commit]'`)
-
-[//]: # (- "Осознание пропуска")
-
-[//]: # (- `git add [file_name]`)
-
-[//]: # (- `git commit --amend -m '[Initial commit]'`)
-
-[//]: # (- `git push`)
-
-[//]: # ()
-[//]: # (### Переименование последнего коммита, который уже был запушен)
-
-[//]: # (- `git commit --amend -m '[New message]'`)
-
-[//]: # (- `git push --force [repository_alias] [branch_name]`)
-
-[//]: # ()
-[//]: # (### Удаление последнего коммита, который уже запушен)
-
-[//]: # (- `git checkout [branch_name]`)
-
-[//]: # (- `git reset --hard [commit_hash]`)
-
-[//]: # (- `git push --force [repository_alias] [branch_name]`)
+```bash
+git checkout [branch_name]
+git reset --hard [commit_hash]
+git push --force [repository_alias] [branch_name]
+```
 
 [//]: # ()
 [//]: # (### Объединить несколько коммитов &#40;изменений&#41; в один)
